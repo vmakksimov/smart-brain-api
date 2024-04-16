@@ -3,6 +3,7 @@ const bodyParser = require('body-parser'); // latest version of exressJS now com
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
+const morgan = require('morgan');
 require('dotenv').config();
 
 
@@ -20,11 +21,12 @@ const db = knex({
     password : process.env.DB_PASSWORD,
     database : 'smart-brain'
   }
+  // connection: 'postgres://postgres:viktor93@localhost:5432/smart-brain'
 });
 
 const app = express();
-
-
+app.use(morgan('combined'))
+console.log('worksssfff11')
 app.use(cors())
 app.use(express.json()); // latest version of exressJS now comes with Body-Parser!
 
