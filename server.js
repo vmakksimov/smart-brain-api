@@ -11,17 +11,17 @@ const register = require('./controllers/register');
 const signin = require('./controllers/signin');
 const profile = require('./controllers/profile');
 const image = require('./controllers/image');
-
+console.log(process.env.POSTGRES_URI)
 const db = knex({
   // connect to your own database here:
   client: 'pg',
   connection: {
-    host : process.env.DB_HOST,
-    user : process.env.DB_USER,
-    password : process.env.DB_PASSWORD,
+    host : process.env.POSTGRES_HOST,
+    user : process.env.POSTGRES_USER,
+    password : process.env.POSTGRES_PASSWORD,
     database : 'smart-brain'
   }
-  // connection: 'postgres://postgres:viktor93@localhost:5432/smart-brain'
+  // connection: process.env.POSTGRES_URI
 });
 
 const app = express();

@@ -8,7 +8,10 @@ services:
     command: npm start
     working_dir: /user/src/smart-brain-api
     environment:
-      POSTGRES_URI: postgres://postgres:viktor93@postgres:5432/smart-brain
+      POSTGRES_PASSWORD: viktor93
+      POSTGRES_DB: smart-brain
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: postgres
     links:
       - postgres
     ports:
