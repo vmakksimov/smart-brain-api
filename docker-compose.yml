@@ -9,12 +9,7 @@ services:
     working_dir: /user/src/smart-brain-api
     env_file:
       - .env
-    environment:
-      POSTGRES_PASSWORD: viktor93
-      POSTGRES_DB: smart-brain
-      POSTGRES_HOST: postgres
-      POSTGRES_USER: postgres
-      REDIS_URI: redis://redis:6379
+    
     links:
       - postgres
       - redis
@@ -24,15 +19,12 @@ services:
       - ./:/user/src/smart-brain-api
 #DB
   postgres:
-    environment:
-      POSTGRES_PASSWORD: viktor93
-      POSTGRES_DB: smart-brain
-      POSTGRES_HOST: postgres
-      POSTGRES_USER: postgres
+    env_file:
+      - .env
     build: ./postgres
     ports:
       - "5432:5432"
-  #Redis
+#Redis
   redis:
     image: redis
     ports:
