@@ -1,6 +1,10 @@
-let jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
+const redis = require('redis');
 const dotenv = require('dotenv');
+const { json } = require('body-parser');
 dotenv.config();
+//setup redis:
+let redisClient;
 
 const handleSignin = (db, bcrypt, req, res) => {
   const { email, password } = req.body;
@@ -27,37 +31,69 @@ const handleSignin = (db, bcrypt, req, res) => {
     .catch(err => Promise.reject('wrong credentials1'))
 }
 
-const getAuthTokenId = () => {
-  console.log('auth ok');
+const getAuthTokenId = (req, res) => {
+  const { authorization } = req.headers;
+  return redisClient.get(authorization, (err, reply) => {
+    if (err || !reply) {
+      return res.status(400).json('Unathorized')
+    }
+    return res.json({ id: reply })
+  })
 }
 
 const signToken = (email) => {
   const jwtPayload = { email };
-  console.log("jwt", jwt)
-  let jwtSecretKey = process.env.JWT_SECRET_KEY;
-  console.log("secret key", jwtSecretKey)
-  const token = jwt.sign(jwtPayload, jwtSecretKey);
-  console.log("jwt token:", token)
-  return token
 
+  try {
+    let jwtSecretKey = process.env.JWT_SECRET_KEY;
+    const token = jwt.sign(jwtPayload, jwtSecretKey, { expiresIn: '1h' });
+    return token;
+  } catch (error) {
+    console.error("Error generating JWT token:", error);
+    throw error; // Optionally rethrow the error for handling by the caller
+  }
 }
+
+
+
+const setToken = async (token, id) => {
+  try {
+    redisClient = await redis.createClient({ url: process.env.REDIS_URI })
+      .on('error', err => console.log('Redis Client Error', err))
+      .connect();
+    return await Promise.resolve(redisClient.set(token, id));
+  } catch (err) {
+    console.log("error in catch block", err)
+    throw err;
+  }
+};
+
 
 const createSessions = (user) => {
   const { email, id } = user;
   const token = signToken(email);
-  console.log("CreateSession token", token)
-  return { success: 'true', userId: id, token }
+  return setToken(token, id)
+    .then((res) => {
+      console.log("resss", res, "userID", id, "token:", token)
+      console.log("userID:", id, "token:", token)
+      return { success: 'true', userId: id, token }
+    })
+
+
 }
 
 const signinAuthentication = (db, bcrypt) => (req, res) => {
   const { authorization } = req.headers;
-  return authorization ? getAuthTokenId() :
+  return authorization ? getAuthTokenId(req, res) :
     handleSignin(db, bcrypt, req, res)
       .then(data => {
+        console.log("dataaaa", data);
         return data.id && data.email ? createSessions(data) : Promise.reject(data)
       })
       .then(session => res.json(session))
-      .catch(err => res.status(400).json('here is the wrong code'))
+      .catch(err => res.status(400).json('SOMETHING WENT WRONG'));
+
+
 }
 
 

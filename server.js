@@ -7,10 +7,9 @@ const morgan = require('morgan');
 
 
 const register = require('./controllers/register');
-const signin = require('./controllers/signin');
+const signin = require('./controllers/signin.js');
 const profile = require('./controllers/profile');
 const image = require('./controllers/image');
-console.log(process.env.POSTGRES_URI)
 const db = knex({
   // connect to your own database here:
   client: 'pg',
