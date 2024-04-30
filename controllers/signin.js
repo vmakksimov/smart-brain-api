@@ -4,7 +4,7 @@ const dotenv = require('dotenv');
 const { json } = require('body-parser');
 dotenv.config();
 //setup redis:
-let redisClient;
+const redisClient = redis.createClient({ url: process.env.REDIS_URI })
 
 const handleSignin = (db, bcrypt, req, res) => {
   const { email, password } = req.body;
@@ -33,12 +33,20 @@ const handleSignin = (db, bcrypt, req, res) => {
 
 const getAuthTokenId = (req, res) => {
   const { authorization } = req.headers;
-  return redisClient.get(authorization, (err, reply) => {
+  console.log("redisClient in gethAuth", redisClient)
+  console.log("authorizationINGeth", authorization)
+  redisClient.connect()
+  redisClient.get(authorization, (err, reply) => {
     if (err || !reply) {
       return res.status(400).json('Unathorized')
     }
-    return res.json({ id: reply })
   })
+    .then(id => {
+      redisClient.quit();
+      return res.json({ id: id })
+    })
+    .catch(error => console.log('error in gethauthcatch', error))
+    
 }
 
 const signToken = (email) => {
@@ -55,13 +63,12 @@ const signToken = (email) => {
 }
 
 
-
 const setToken = async (token, id) => {
   try {
-    redisClient = await redis.createClient({ url: process.env.REDIS_URI })
-      .on('error', err => console.log('Redis Client Error', err))
-      .connect();
-    return await Promise.resolve(redisClient.set(token, id));
+    await redisClient.connect()
+    const result =  redisClient.set(token, id);
+    await redisClient.quit();
+    return result
   } catch (err) {
     console.log("error in catch block", err)
     throw err;
@@ -97,6 +104,9 @@ const signinAuthentication = (db, bcrypt) => (req, res) => {
 }
 
 
+
+
 module.exports = {
-  signinAuthentication: signinAuthentication
+  signinAuthentication: signinAuthentication,
+  redisClient: redisClient
 }

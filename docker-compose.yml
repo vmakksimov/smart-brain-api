@@ -9,7 +9,6 @@ services:
     working_dir: /user/src/smart-brain-api
     env_file:
       - .env
-    
     links:
       - postgres
       - redis
