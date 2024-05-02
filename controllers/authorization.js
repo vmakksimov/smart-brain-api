@@ -2,7 +2,7 @@ const redisClient = require('./signin').redisClient;
 
 const requireAuth = async (req, res, next) => {
     const { authorization } = req.headers;
-    if (!authorization) {
+    if (authorization === 'null') {
         return res.status(401).json('Unathorized')
     }
     console.log("redisClienttt", redisClient)

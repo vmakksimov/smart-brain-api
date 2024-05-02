@@ -21,17 +21,18 @@ const handleProfileUpdate = (req, res, db) => {
   const {name, age, pet} = req.body.formInput;
   db('users')
     .where({ id })
-    .update({ name })
-    .then(res => {
-      console.log("res on update", res)
-      if (res) {
-        res.json('success')
+    .update({ name, age, pet })
+    .then(response => {
+      console.log("res on update", response)
+      console.log("res from request:", res)
+      if (response) {
+        res.status(200).json('success');
       } else {
         res.status(400).json('not found')
       }
     })
     .catch(error => {
-      res.status(400).json('error in the catch');
+      console.log("error when updating:", error);
     })
 }
 
